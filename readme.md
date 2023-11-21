@@ -1,6 +1,3 @@
-Sure, in a Markdown file like `README.md`, you can showcase code blocks using backticks (```). Here's an example of how you can display code within a Markdown file:
-
-````markdown
 # Class Model Generator
 
 This repository contains a utility tool designed to assist in generating class models. The tool offers the flexibility to choose between Codable or ObjectMapper for model serialization and deserialization, catering to different preferences or project requirements.
@@ -24,6 +21,7 @@ Clone the repository to your local machine:
 ```bash
 git clone https://github.com/your-username/class-model-generator.git
 ```
+
 ````
 
 ## Usage
@@ -50,3 +48,4 @@ In the code blocks, you can specify the language for syntax highlighting by writ
 
 Markdown is primarily for formatting and displaying text, so it won't execute or run the code; it's meant for showcasing code and providing instructions.
 ```
+````
