@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Swift Class Generator</title>
+    <link
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="container mt-5">
+    <h1 class="mb-4">Swift Class Generator</h1>
+    <form id="swiftForm" class="mb-4">
+      <div class="form-group">
+        <label for="className">Class Name:</label>
+        <input
+          type="text"
+          class="form-control"
+          id="className"
+          name="className"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <label for="jsonData">JSON Data:</label>
+        <textarea
+          class="form-control"
+          id="jsonData"
+          name="jsonData"
+          rows="5"
+          required
+        ></textarea>
+      </div>
+      <div class="form-group">
+        <label>Select Generation Type:</label><br />
+        <input
+          type="radio"
+          id="codable"
+          name="generationType"
+          value="codable"
+        />
+        <label for="codable">Codable</label>
+        <input
+          type="radio"
+          id="objectMapper"
+          name="generationType"
+          value="objectMapper"
+        />
+        <label for="objectMapper">ObjectMapper</label>
+      </div>
+
+      <div class="form-group">
+        <label for="nullable">Nullable Properties:</label>
+        <div>
+          <input
+            type="checkbox"
+            id="nullable"
+            name="nullable"
+            value="nullable"
+          />
+          <label for="nullable">Allow Nullable Properties</label>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="btn btn-primary mr-2"
+        onclick="generateSwiftClass()"
+      >
+        Generate Swift Class
+      </button>
+      <button
+        type="button"
+        class="btn btn-secondary"
+        onclick="copyToClipboard()"
+      >
+        Copy to Clipboard
+      </button>
+    </form>
+    <div id="output" class="border p-3"></div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.min.js"></script>
+    <script>
+      function generateSwiftClass() {
+        const className = document.getElementById("className").value;
+        const jsonData = document.getElementById("jsonData").value;
+        const nullable = document.getElementById("nullable").checked;
+
+        const generationType = document.querySelector(
+          'input[name="generationType"]:checked'
+        ).value;
+
+        fetch("/generate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            className,
+            jsonData,
+            generationType,
+            nullable,
+          }),
+        })
+          .then((response) => response.text())
+          .then((data) => {
+            document.getElementById("output").innerText = data;
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
+
+      function copyToClipboard() {
+        const outputElement = document.getElementById("output");
+        const textToCopy = outputElement.innerText;
+
+        const tempTextArea = document.createElement("textarea");
+        tempTextArea.value = textToCopy;
+        document.body.appendChild(tempTextArea);
+
+        tempTextArea.select();
+        document.execCommand("copy");
+
+        document.body.removeChild(tempTextArea);
+      }
+    </script>
+  </body>
+</html>
