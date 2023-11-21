@@ -11,8 +11,8 @@ This repository contains a utility tool designed to assist in generating class m
 
 ### Prerequisites
 
-- Xcode (latest version recommended)
-- Swift (latest version recommended)
+- Node.js (latest version recommended)
+- npm or yarn
 
 ### Installation
 
@@ -22,13 +22,24 @@ Clone the repository to your local machine:
 git clone https://github.com/your-username/class-model-generator.git
 ```
 
-````
+Install dependencies:
+
+```bash
+cd class-model-generator
+npm install
+```
 
 ## Usage
 
-1. Navigate to the directory containing the generator tool.
-2. Run the tool and follow the prompts to create your desired class model.
-3. Choose the serialization method (Codable/ObjectMapper) based on your project needs.
+1. Run the application using Express.js:
+
+```bash
+node app.js
+```
+
+2. Access the generator tool via your web browser at `http://localhost:3000` or as specified in the console output.
+
+3. Follow the prompts to create your desired class model, choosing the serialization method (Codable/ObjectMapper) based on your project needs.
 
 ## License
 
@@ -44,8 +55,5 @@ Contributions are welcome! If you find any issues or have suggestions for improv
 
 ```
 
-In the code blocks, you can specify the language for syntax highlighting by writing the language name after the opening triple backticks. For instance, specifying `bash` will enable appropriate syntax highlighting for shell commands.
-
-Markdown is primarily for formatting and displaying text, so it won't execute or run the code; it's meant for showcasing code and providing instructions.
+This example assumes that your Express.js application runs via `app.js`. Adjust the installation steps and commands according to your project's directory structure and how you start your Express.js application.
 ```
-````
