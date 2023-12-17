@@ -1,7 +1,8 @@
 function generateSwiftClass(
   json,
   className = "GeneratedClass",
-  nullable = false
+  nullable = false,
+  caseType = "camelCase"
 ) {
   if (!json || typeof json !== "object") {
     console.error("Invalid JSON input");
@@ -10,22 +11,20 @@ function generateSwiftClass(
 
   let swiftCode = ``;
 
+  swiftCode += `import ObjectMapper\n\npublic class ${className}: Mappable {\n\n`; // Class name
+  swiftCode += `${generateProperties(json, className, caseType, nullable)}\n`; // Properties
+  swiftCode += `    public required init?(map: Map) {\n    }\n\n`; // Init
+  swiftCode += `    public init() {\n    }\n\n`; // Init
+  swiftCode += `    public func mapping(map: Map) {\n`; // Mapping
+
   for (let [property, value] of Object.entries(json)) {
-    swiftCode += `import ObjectMapper\n\npublic class ${className}: Mappable {\n\n`; //clas name
-    swiftCode += `${generateProperties(json, className, nullable)}\n`; //properties
-    swiftCode += `    public required init?(map: Map) {\n    }\n\n`; //init
-    swiftCode += `    public init() {\n    }\n\n`; //init
-    swiftCode += `    public func mapping(map: Map) {\n`; //mapping
-
-    for (let [property, value] of Object.entries(json)) {
-      //mapping value
-      swiftCode += `        ${property} <- map["${property}"]\n`;
-    }
-
-    swiftCode += `    }\n\n`; //end of properties
-    swiftCode += `}`; //end of line
-    break; // Break the loop after processing the main class
+    // Mapping value
+    let propertyName = convertToCase(property, caseType);
+    swiftCode += `        ${propertyName} <- map["${property}"]\n`;
   }
+
+  swiftCode += `    }\n\n`; // End of properties
+  swiftCode += `}`; // End of class
 
   return swiftCode;
 }
@@ -33,7 +32,8 @@ function generateSwiftClass(
 function generateSwiftClassCodable(
   json,
   className = "GeneratedClass",
-  nullable = false
+  nullable = false,
+  caseType = "camelCase" // Default to camelCase if not provided
 ) {
   if (!json || typeof json !== "object") {
     console.error("Invalid JSON input");
@@ -44,7 +44,20 @@ function generateSwiftClassCodable(
   const isNullable = nullable ? "?" : "";
 
   for (let [property, value] of Object.entries(json)) {
-    swiftCode += `    let ${property}: ${detectSwiftType(
+    let propertyName = "";
+
+    // Convert property name based on the specified caseType
+    if (caseType === "snake_case") {
+      propertyName = property.toLowerCase().replace(/ /g, "_");
+    } else if (caseType === "PascalCase") {
+      propertyName = capitalizeFirstLetter(property).replace(/ /g, "");
+    } else if (caseType === "camelCase") {
+      propertyName = (
+        property.charAt(0).toLowerCase() + property.slice(1)
+      ).replace(/ /g, "");
+    }
+
+    swiftCode += `    let ${propertyName}: ${detectSwiftType(
       value
     )}${isNullable}\n`;
   }
@@ -53,7 +66,21 @@ function generateSwiftClassCodable(
   swiftCode += `    enum CodingKeys: String, CodingKey {\n`;
 
   for (let [property] of Object.entries(json)) {
-    swiftCode += `        case ${property} = "${property}"\n`;
+    let propertyName = "";
+
+    // Convert property name based on the specified caseType
+    if (caseType === "snake_case") {
+      propertyName = property.toLowerCase().replace(/ /g, "_");
+    } else if (caseType === "PascalCase") {
+      propertyName = capitalizeFirstLetter(property);
+    } else if (caseType === "camelCase") {
+      propertyName = property.charAt(0).toLowerCase() + property.slice(1);
+    }
+
+    swiftCode += `        case ${propertyName.replace(
+      / /g,
+      ""
+    )} = "${property}"\n`;
   }
 
   swiftCode += `    }\n\n`;
@@ -62,14 +89,34 @@ function generateSwiftClassCodable(
   swiftCode += `        let values = try decoder.container(keyedBy: CodingKeys.self)\n\n`;
 
   for (let [property, value] of Object.entries(json)) {
-    if (isNullable) {
-      swiftCode += `        ${property} = try values.decodeIfPresent(${detectSwiftType(
+    let propertyName = "";
+
+    // Convert property name based on the specified caseType
+    if (caseType === "snake_case") {
+      propertyName = property.toLowerCase().replace(/ /g, "_");
+    } else if (caseType === "PascalCase") {
+      propertyName = capitalizeFirstLetter(property);
+    } else if (caseType === "camelCase") {
+      propertyName = property.charAt(0).toLowerCase() + property.slice(1);
+    }
+
+    if (nullable) {
+      swiftCode += `        ${propertyName.replace(
+        / /g,
+        ""
+      )} = try values.decodeIfPresent(${detectSwiftType(
         value
-      )}.self, forKey: .${property})\n`;
+      )}.self, forKey: .${propertyName.replace(/ /g, "")})\n`;
     } else {
-      swiftCode += `        ${property} = try values.decodeIfPresent(${detectSwiftType(
+      swiftCode += `        ${propertyName.replace(
+        / /g,
+        ""
+      )} = try values.decodeIfPresent(${detectSwiftType(
         value
-      )}.self, forKey: .${property}) ?? ${getDefaultSwiftValue(value)}\n`;
+      )}.self, forKey: .${propertyName.replace(
+        / /g,
+        ""
+      )}) ?? ${getDefaultSwiftValue(value)}\n`;
     }
   }
 
@@ -80,37 +127,48 @@ function generateSwiftClassCodable(
   return swiftCode;
 }
 
-function generateProperties(json, className, nullable) {
+function generateProperties(json, className, caseType, nullable) {
   let propertiesCode = "";
   const isNullable = nullable ? "?" : "";
 
   for (let [property, value] of Object.entries(json)) {
+    let propertyName = convertToCase(property, caseType);
+
     if (Array.isArray(value)) {
-      if (value.length > 0) {
-        if (typeof value[0] === "object") {
-          propertiesCode += `    public var ${property} : [${capitalizeFirstLetter(
-            property
-          )}]${isNullable} = []\n`;
-        } else {
-          propertiesCode += `    public var ${property} : [${detectArrayType(
-            value
-          )}]${isNullable} = [${detectArrayType(value)}]()\n`;
-        }
+      if (value.length > 0 && typeof value[0] === "object") {
+        propertiesCode += `    public var ${propertyName} : ${capitalizeFirstLetter(
+          propertyName
+        )}${isNullable} = ${capitalizeFirstLetter(propertyName)}()\n`;
       } else {
-        propertiesCode += `    public var ${property}${isNullable} : [Any] = []\n`;
+        propertiesCode += `    public var ${propertyName} : [${detectArrayType(
+          value
+        )}]${isNullable} = [${detectArrayType(value)}]()\n`;
       }
     } else if (typeof value === "object" && value !== null) {
-      const nestedClassName = capitalizeFirstLetter(property);
-      propertiesCode += `    public var ${property}${isNullable} : ${nestedClassName} = ${nestedClassName}()\n`;
+      propertiesCode += `    public var ${propertyName} : ${capitalizeFirstLetter(
+        propertyName
+      )}${isNullable} = ${capitalizeFirstLetter(propertyName)}()\n`;
     } else {
-      // Handle the case where data is null
-      propertiesCode += `    public var ${property}${isNullable} : ${detectSwiftType(
+      propertiesCode += `    public var ${propertyName}${isNullable} : ${detectSwiftType(
         value
       )} = ${getDefaultSwiftValue(value)}\n`;
     }
   }
 
   return propertiesCode;
+}
+
+function convertToCase(property, caseType) {
+  if (caseType === "snake_case") {
+    return property.toLowerCase().replace(/ /g, "_");
+  } else if (caseType === "PascalCase") {
+    return capitalizeFirstLetter(property.replace(/ /g, ""));
+  } else if (caseType === "camelCase") {
+    return (property.charAt(0).toLowerCase() + property.slice(1)).replace(
+      / /g,
+      ""
+    );
+  }
 }
 
 function detectSwiftType(value) {

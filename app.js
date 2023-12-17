@@ -20,17 +20,26 @@ app.post("/generate", (req, res) => {
   const className = req.body.className;
   const jsonData = JSON.parse(req.body.jsonData);
   const generationType = req.body.generationType;
+  const caseType = req.body.caseType;
   const nullable = req.body.nullable;
+
+  // console.log(caseType);
 
   if (generationType == "codable") {
     const swiftClassCode = generateSwiftClassCodable(
       jsonData,
       className,
-      nullable
+      nullable,
+      caseType
     );
     res.send(swiftClassCode);
   } else {
-    const swiftClassCode = generateSwiftClass(jsonData, className, nullable);
+    const swiftClassCode = generateSwiftClass(
+      jsonData,
+      className,
+      nullable,
+      caseType
+    );
     res.send(swiftClassCode);
   }
 });
