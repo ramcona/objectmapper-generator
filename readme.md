@@ -48,12 +48,3 @@ This project is licensed under the MIT License. Feel free to modify and distribu
 ## Contributions
 
 Contributions are welcome! If you find any issues or have suggestions for improvements, feel free to open an issue or create a pull request.
-
----
-
-**Note:** This README serves as a guideline. Modify it according to your project's specifics, including installation instructions, usage examples, and licensing information.
-
-```
-
-This example assumes that your Express.js application runs via `app.js`. Adjust the installation steps and commands according to your project's directory structure and how you start your Express.js application.
-```
